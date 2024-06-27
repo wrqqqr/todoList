@@ -1,8 +1,9 @@
+// src/components/TodoList.tsx
 import React, { useState } from 'react';
-import { Container, List, TextField, Button, Typography } from '@mui/material';
+import { Container, List, TextField, Button, Typography, Box } from '@mui/material';
+import TodoItem from '../TodoItem/TodoItem.tsx';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { v4 as uuidv4 } from 'uuid';
-import TodoItem from "../TodoItem/TodoItem.tsx";
 
 interface Todo {
     id: string;
@@ -12,6 +13,7 @@ interface Todo {
 
 const TodoList: React.FC = () => {
     const [todoList, setTodoList] = useState<Todo[]>([]);
+    const [completedList, setCompletedList] = useState<Todo[]>([]);
     const [newTodo, setNewTodo] = useState('');
 
     const handleAddTodo = () => {
@@ -21,25 +23,37 @@ const TodoList: React.FC = () => {
     };
 
     const handleToggleTodo = (id: string) => {
-        setTodoList(todoList.map(Todo => Todo.id === id ? { ...Todo, completed: !Todo.completed } : Todo));
+        setTodoList(todoList.map(todo => todo.id === id ? { ...todo, completed: !todo.completed } : todo));
     };
 
     const handleDeleteTodo = (id: string) => {
-        setTodoList(todoList.filter(Todo => Todo.id !== id));
+        setTodoList(todoList.filter(todo => todo.id !== id));
     };
 
     const handleEditTodo = (id: string, newText: string) => {
-        setTodoList(todoList.map(Todo => Todo.id === id ? { ...Todo, text: newText } : Todo));
+        setTodoList(todoList.map(todo => todo.id === id ? { ...todo, text: newText } : todo));
     };
 
     const handleOnDragEnd = (result: DropResult) => {
-        if (!result.destination) return;
+        const { source, destination } = result;
+        if (!destination) return;
 
-        const items = Array.from(todoList);
-        const [reorderedItem] = items.splice(result.source.index, 1);
-        items.splice(result.destination.index, 0, reorderedItem);
+        let sourceList = source.droppableId === 'activeTodoList' ? todoList : completedList;
+        let destinationList = destination.droppableId === 'activeTodoList' ? todoList : completedList;
 
-        setTodoList(items);
+        const [movedItem] = sourceList.splice(source.index, 1);
+        destinationList.splice(destination.index, 0, movedItem);
+
+        if (source.droppableId === 'activeTodoList' && destination.droppableId === 'completedTodoList') {
+            movedItem.completed = true;
+            setCompletedList([...completedList, movedItem]);
+        } else if (source.droppableId === 'completedTodoList' && destination.droppableId === 'activeTodoList') {
+            movedItem.completed = false;
+            setTodoList([...todoList, movedItem]);
+        }
+
+        setTodoList([...todoList]);
+        setCompletedList([...completedList]);
     };
 
     return (
@@ -58,33 +72,64 @@ const TodoList: React.FC = () => {
                 Add
             </Button>
             <DragDropContext onDragEnd={handleOnDragEnd}>
-                <Droppable droppableId="TodoList">
-                    {(provided) => (
-                        <List {...provided.droppableProps} ref={provided.innerRef}>
-                            {todoList.map((Todo, index) => (
-                                <Draggable key={Todo.id} draggableId={Todo.id} index={index}>
-                                    {(provided) => (
-                                        <div
-                                            ref={provided.innerRef}
-                                            {...provided.draggableProps}
-                                            {...provided.dragHandleProps}
-                                        >
-                                            <TodoItem
-                                                id={Todo.id}
-                                                text={Todo.text}
-                                                completed={Todo.completed}
-                                                onToggle={handleToggleTodo}
-                                                onDelete={handleDeleteTodo}
-                                                onEdit={handleEditTodo}
-                                            />
-                                        </div>
-                                    )}
-                                </Draggable>
-                            ))}
-                            {provided.placeholder}
-                        </List>
-                    )}
-                </Droppable>
+                <Box display="flex" justifyContent="space-between" mt={3}>
+                    <Droppable droppableId="activeTodoList">
+                        {(provided) => (
+                            <List {...provided.droppableProps} ref={provided.innerRef} style={{ backgroundColor: 'lightgrey', padding: '10px', borderRadius: '4px', width: '45%' }}>
+                                <Typography variant="h6">Active Tasks</Typography>
+                                {todoList.map((todo, index) => (
+                                    <Draggable key={todo.id} draggableId={todo.id} index={index}>
+                                        {(provided) => (
+                                            <div
+                                                ref={provided.innerRef}
+                                                {...provided.draggableProps}
+                                                {...provided.dragHandleProps}
+                                            >
+                                                <TodoItem
+                                                    id={todo.id}
+                                                    text={todo.text}
+                                                    completed={todo.completed}
+                                                    onToggle={handleToggleTodo}
+                                                    onDelete={handleDeleteTodo}
+                                                    onEdit={handleEditTodo}
+                                                />
+                                            </div>
+                                        )}
+                                    </Draggable>
+                                ))}
+                                {provided.placeholder}
+                            </List>
+                        )}
+                    </Droppable>
+                    <Droppable droppableId="completedTodoList">
+                        {(provided) => (
+                            <Box {...provided.droppableProps} ref={provided.innerRef} style={{ backgroundColor: 'lightgreen', padding: '10px', borderRadius: '4px', width: '45%' }}>
+                                <Typography variant="h6">Completed Tasks</Typography>
+                                {completedList.map((todo, index) => (
+                                    <Draggable key={todo.id} draggableId={todo.id} index={index}>
+                                        {(provided) => (
+                                            <div
+                                                ref={provided.innerRef}
+                                                {...provided.draggableProps}
+                                                {...provided.dragHandleProps}
+                                            >
+                                                <TodoItem
+                                                    id={todo.id}
+                                                    text={todo.text}
+                                                    completed={todo.completed}
+                                                    onToggle={handleToggleTodo}
+                                                    onDelete={handleDeleteTodo}
+                                                    onEdit={handleEditTodo}
+                                                />
+                                            </div>
+                                        )}
+                                    </Draggable>
+                                ))}
+                                {provided.placeholder}
+                            </Box>
+                        )}
+                    </Droppable>
+                </Box>
             </DragDropContext>
         </Container>
     );
