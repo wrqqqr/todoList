@@ -1,5 +1,4 @@
-// src/components/TodoList.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, List, TextField, Button, Typography, Box } from '@mui/material';
 import TodoItem from '../TodoItem/TodoItem.tsx';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
@@ -15,6 +14,21 @@ const TodoList: React.FC = () => {
     const [todoList, setTodoList] = useState<Todo[]>([]);
     const [completedList, setCompletedList] = useState<Todo[]>([]);
     const [newTodo, setNewTodo] = useState('');
+    const [searchText, setSearchText] = useState('');
+
+    // Load todos from localStorage when component mounts
+    useEffect(() => {
+        const savedTodos = localStorage.getItem('todoList');
+        const savedCompletedTodos = localStorage.getItem('completedList');
+        if (savedTodos) setTodoList(JSON.parse(savedTodos));
+        if (savedCompletedTodos) setCompletedList(JSON.parse(savedCompletedTodos));
+    }, []);
+
+    // Save todos to localStorage whenever todoList or completedList changes
+    useEffect(() => {
+        localStorage.setItem('todoList', JSON.stringify(todoList));
+        localStorage.setItem('completedList', JSON.stringify(completedList));
+    }, [todoList, completedList]);
 
     const handleAddTodo = () => {
         if (newTodo.trim() === '') return;
@@ -61,6 +75,14 @@ const TodoList: React.FC = () => {
         }
     };
 
+    const filteredTodoList = todoList.filter(todo =>
+        todo.text.toLowerCase().includes(searchText.toLowerCase())
+    );
+
+    const filteredCompletedList = completedList.filter(todo =>
+        todo.text.toLowerCase().includes(searchText.toLowerCase())
+    );
+
     return (
         <Container>
             <Typography variant="h4" gutterBottom>
@@ -76,13 +98,20 @@ const TodoList: React.FC = () => {
             <Button onClick={handleAddTodo} variant="contained" color="primary" style={{ marginTop: '10px' }}>
                 Add
             </Button>
+            <TextField
+                label="Search"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                fullWidth
+                style={{ marginTop: '20px' }}
+            />
             <DragDropContext onDragEnd={handleOnDragEnd}>
                 <Box display="flex" justifyContent="space-between" mt={3}>
                     <Droppable droppableId="activeTodoList">
                         {(provided) => (
-                            <List {...provided.droppableProps} ref={provided.innerRef} style={{ backgroundColor: 'lightgrey', padding: '10px', borderRadius: '4px', width: '500px' }}>
+                            <List {...provided.droppableProps} ref={provided.innerRef} style={{ backgroundColor: 'lightgrey', padding: '10px', borderRadius: '4px', width: '45%' }}>
                                 <Typography variant="h6">Active Tasks</Typography>
-                                {todoList.map((todo, index) => (
+                                {filteredTodoList.map((todo, index) => (
                                     <Draggable key={todo.id} draggableId={todo.id} index={index}>
                                         {(provided) => (
                                             <div
@@ -108,9 +137,9 @@ const TodoList: React.FC = () => {
                     </Droppable>
                     <Droppable droppableId="completedTodoList">
                         {(provided) => (
-                            <Box {...provided.droppableProps} ref={provided.innerRef} style={{ backgroundColor: 'lightgreen', padding: '10px', borderRadius: '4px', width: '500px' }}>
+                            <Box {...provided.droppableProps} ref={provided.innerRef} style={{ backgroundColor: 'lightgreen', padding: '10px', borderRadius: '4px', width: '45%' }}>
                                 <Typography variant="h6">Completed Tasks</Typography>
-                                {completedList.map((todo, index) => (
+                                {filteredCompletedList.map((todo, index) => (
                                     <Draggable key={todo.id} draggableId={todo.id} index={index}>
                                         {(provided) => (
                                             <div

@@ -25,7 +25,7 @@ const ToDoItem: React.FC<ToDoItemProps> = ({ id, text, completed, onToggle, onDe
     };
 
     return (
-        <ListItem>
+        <ListItem style={{border: '1px solid grey'}}>
             <Checkbox checked={completed} onChange={() => onToggle(id)} />
             {isEditing ? (
                 <TextField value={editedText} onChange={handleEditChange} onBlur={handleSave} autoFocus />
