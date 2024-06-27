@@ -1,52 +1,25 @@
-import React, { useState, useEffect } from 'react';
+// src/components/TodoList.tsx
+import React from 'react';
 import { Container, List, TextField, Button, Typography, Box } from '@mui/material';
 import TodoItem from '../TodoItem/TodoItem.tsx';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { v4 as uuidv4 } from 'uuid';
-
-interface Todo {
-    id: string;
-    text: string;
-    completed: boolean;
-}
+import { useTodoStore } from '../../store/useTodoStore';
 
 const TodoList: React.FC = () => {
-    const [todoList, setTodoList] = useState<Todo[]>([]);
-    const [completedList, setCompletedList] = useState<Todo[]>([]);
-    const [newTodo, setNewTodo] = useState('');
-    const [searchText, setSearchText] = useState('');
-
-    // Load todos from localStorage when component mounts
-    useEffect(() => {
-        const savedTodos = localStorage.getItem('todoList');
-        const savedCompletedTodos = localStorage.getItem('completedList');
-        if (savedTodos) setTodoList(JSON.parse(savedTodos));
-        if (savedCompletedTodos) setCompletedList(JSON.parse(savedCompletedTodos));
-    }, []);
-
-    // Save todos to localStorage whenever todoList or completedList changes
-    useEffect(() => {
-        localStorage.setItem('todoList', JSON.stringify(todoList));
-        localStorage.setItem('completedList', JSON.stringify(completedList));
-    }, [todoList, completedList]);
-
-    const handleAddTodo = () => {
-        if (newTodo.trim() === '') return;
-        setTodoList([...todoList, { id: uuidv4(), text: newTodo, completed: false }]);
-        setNewTodo('');
-    };
-
-    const handleToggleTodo = (id: string) => {
-        setTodoList(todoList.map(todo => todo.id === id ? { ...todo, completed: !todo.completed } : todo));
-    };
-
-    const handleDeleteTodo = (id: string) => {
-        setTodoList(todoList.filter(todo => todo.id !== id));
-    };
-
-    const handleEditTodo = (id: string, newText: string) => {
-        setTodoList(todoList.map(todo => todo.id === id ? { ...todo, text: newText } : todo));
-    };
+    const {
+        todoList,
+        completedList,
+        newTodo,
+        searchText,
+        setNewTodo,
+        setSearchText,
+        addTodo,
+        toggleTodo,
+        deleteTodo,
+        editTodo,
+        setTodoList,
+        setCompletedList
+    } = useTodoStore();
 
     const handleOnDragEnd = (result: DropResult) => {
         const { source, destination } = result;
@@ -92,10 +65,10 @@ const TodoList: React.FC = () => {
                 label="New Todo"
                 value={newTodo}
                 onChange={(e) => setNewTodo(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleAddTodo()}
+                onKeyPress={(e) => e.key === 'Enter' && addTodo()}
                 fullWidth
             />
-            <Button onClick={handleAddTodo} variant="contained" color="primary" style={{ marginTop: '10px' }}>
+            <Button onClick={addTodo} variant="contained" color="primary" style={{ marginTop: '10px' }}>
                 Add
             </Button>
             <TextField
@@ -109,11 +82,11 @@ const TodoList: React.FC = () => {
                 <Box display="flex" justifyContent="space-between" mt={3}>
                     <Droppable droppableId="activeTodoList">
                         {(provided) => (
-                            <List {...provided.droppableProps} ref={provided.innerRef} style={{ backgroundColor: 'lightgrey', padding: '10px', borderRadius: '4px', width: '45%' }}>
+                            <List {...provided.droppableProps} ref={provided.innerRef} style={{ backgroundColor: 'lightgrey', padding: '10px', borderRadius: '4px', width: '500px' }}>
                                 <Typography variant="h6">Active Tasks</Typography>
                                 {filteredTodoList.map((todo, index) => (
                                     <Draggable key={todo.id} draggableId={todo.id} index={index}>
-                                        {(provided) => (
+                                        {(provided: any) => (
                                             <div
                                                 ref={provided.innerRef}
                                                 {...provided.draggableProps}
@@ -123,9 +96,9 @@ const TodoList: React.FC = () => {
                                                     id={todo.id}
                                                     text={todo.text}
                                                     completed={todo.completed}
-                                                    onToggle={handleToggleTodo}
-                                                    onDelete={handleDeleteTodo}
-                                                    onEdit={handleEditTodo}
+                                                    onToggle={toggleTodo}
+                                                    onDelete={deleteTodo}
+                                                    onEdit={editTodo}
                                                 />
                                             </div>
                                         )}
@@ -136,12 +109,12 @@ const TodoList: React.FC = () => {
                         )}
                     </Droppable>
                     <Droppable droppableId="completedTodoList">
-                        {(provided) => (
-                            <Box {...provided.droppableProps} ref={provided.innerRef} style={{ backgroundColor: 'lightgreen', padding: '10px', borderRadius: '4px', width: '45%' }}>
+                        {(provided: any) => (
+                            <Box {...provided.droppableProps} ref={provided.innerRef} style={{ backgroundColor: 'lightgreen', padding: '10px', borderRadius: '4px', width: '500px' }}>
                                 <Typography variant="h6">Completed Tasks</Typography>
                                 {filteredCompletedList.map((todo, index) => (
                                     <Draggable key={todo.id} draggableId={todo.id} index={index}>
-                                        {(provided) => (
+                                        {(provided: any) => (
                                             <div
                                                 ref={provided.innerRef}
                                                 {...provided.draggableProps}
@@ -151,9 +124,9 @@ const TodoList: React.FC = () => {
                                                     id={todo.id}
                                                     text={todo.text}
                                                     completed={todo.completed}
-                                                    onToggle={handleToggleTodo}
-                                                    onDelete={handleDeleteTodo}
-                                                    onEdit={handleEditTodo}
+                                                    onToggle={toggleTodo}
+                                                    onDelete={deleteTodo}
+                                                    onEdit={editTodo}
                                                 />
                                             </div>
                                         )}
