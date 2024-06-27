@@ -38,22 +38,27 @@ const TodoList: React.FC = () => {
         const { source, destination } = result;
         if (!destination) return;
 
-        let sourceList = source.droppableId === 'activeTodoList' ? todoList : completedList;
-        let destinationList = destination.droppableId === 'activeTodoList' ? todoList : completedList;
+        let sourceList = source.droppableId === 'activeTodoList' ? [...todoList] : [...completedList];
+        let destinationList = destination.droppableId === 'activeTodoList' ? [...todoList] : [...completedList];
 
         const [movedItem] = sourceList.splice(source.index, 1);
         destinationList.splice(destination.index, 0, movedItem);
 
         if (source.droppableId === 'activeTodoList' && destination.droppableId === 'completedTodoList') {
             movedItem.completed = true;
-            setCompletedList([...completedList, movedItem]);
+            setTodoList(sourceList);
+            setCompletedList(destinationList);
         } else if (source.droppableId === 'completedTodoList' && destination.droppableId === 'activeTodoList') {
             movedItem.completed = false;
-            setTodoList([...todoList, movedItem]);
+            setCompletedList(sourceList);
+            setTodoList(destinationList);
+        } else {
+            if (source.droppableId === 'activeTodoList') {
+                setTodoList(destinationList);
+            } else {
+                setCompletedList(destinationList);
+            }
         }
-
-        setTodoList([...todoList]);
-        setCompletedList([...completedList]);
     };
 
     return (
@@ -75,7 +80,7 @@ const TodoList: React.FC = () => {
                 <Box display="flex" justifyContent="space-between" mt={3}>
                     <Droppable droppableId="activeTodoList">
                         {(provided) => (
-                            <List {...provided.droppableProps} ref={provided.innerRef} style={{ backgroundColor: 'lightgrey', padding: '10px', borderRadius: '4px', width: '45%' }}>
+                            <List {...provided.droppableProps} ref={provided.innerRef} style={{ backgroundColor: 'lightgrey', padding: '10px', borderRadius: '4px', width: '500px' }}>
                                 <Typography variant="h6">Active Tasks</Typography>
                                 {todoList.map((todo, index) => (
                                     <Draggable key={todo.id} draggableId={todo.id} index={index}>
@@ -103,7 +108,7 @@ const TodoList: React.FC = () => {
                     </Droppable>
                     <Droppable droppableId="completedTodoList">
                         {(provided) => (
-                            <Box {...provided.droppableProps} ref={provided.innerRef} style={{ backgroundColor: 'lightgreen', padding: '10px', borderRadius: '4px', width: '45%' }}>
+                            <Box {...provided.droppableProps} ref={provided.innerRef} style={{ backgroundColor: 'lightgreen', padding: '10px', borderRadius: '4px', width: '500px' }}>
                                 <Typography variant="h6">Completed Tasks</Typography>
                                 {completedList.map((todo, index) => (
                                     <Draggable key={todo.id} draggableId={todo.id} index={index}>

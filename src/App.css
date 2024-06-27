@@ -11,6 +11,18 @@
   will-change: filter;
   transition: filter 300ms;
 }
+.droppable {
+  background-color: lightgrey;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  width: 400px;
+}
+
+.completed-droppable {
+  background-color: lightgreen;
+}
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
