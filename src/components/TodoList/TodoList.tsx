@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Container, List, TextField, Button, Typography } from '@mui/material';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import { v4 as uuidv4 } from 'uuid';
 import TodoItem from "../TodoItem/TodoItem.tsx";
 
 interface Todo {
@@ -10,31 +11,31 @@ interface Todo {
 }
 
 const TodoList: React.FC = () => {
-    const [TodoList, setTodoList] = useState<Todo[]>([]);
+    const [todoList, setTodoList] = useState<Todo[]>([]);
     const [newTodo, setNewTodo] = useState('');
 
     const handleAddTodo = () => {
         if (newTodo.trim() === '') return;
-        setTodoList([...TodoList, { id: uuidv4(), text: newTodo, completed: false }]);
+        setTodoList([...todoList, { id: uuidv4(), text: newTodo, completed: false }]);
         setNewTodo('');
     };
 
     const handleToggleTodo = (id: string) => {
-        setTodoList(TodoList.map(Todo => Todo.id === id ? { ...Todo, completed: !Todo.completed } : Todo));
+        setTodoList(todoList.map(Todo => Todo.id === id ? { ...Todo, completed: !Todo.completed } : Todo));
     };
 
     const handleDeleteTodo = (id: string) => {
-        setTodoList(TodoList.filter(Todo => Todo.id !== id));
+        setTodoList(todoList.filter(Todo => Todo.id !== id));
     };
 
     const handleEditTodo = (id: string, newText: string) => {
-        setTodoList(TodoList.map(Todo => Todo.id === id ? { ...Todo, text: newText } : Todo));
+        setTodoList(todoList.map(Todo => Todo.id === id ? { ...Todo, text: newText } : Todo));
     };
 
     const handleOnDragEnd = (result: DropResult) => {
         if (!result.destination) return;
 
-        const items = Array.from(TodoList);
+        const items = Array.from(todoList);
         const [reorderedItem] = items.splice(result.source.index, 1);
         items.splice(result.destination.index, 0, reorderedItem);
 
@@ -60,7 +61,7 @@ const TodoList: React.FC = () => {
                 <Droppable droppableId="TodoList">
                     {(provided) => (
                         <List {...provided.droppableProps} ref={provided.innerRef}>
-                            {TodoList.map((Todo, index) => (
+                            {todoList.map((Todo, index) => (
                                 <Draggable key={Todo.id} draggableId={Todo.id} index={index}>
                                     {(provided) => (
                                         <div

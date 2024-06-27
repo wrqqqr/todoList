@@ -5,7 +5,6 @@ import './App.css'
 import TodoList from "./components/TodoList/TodoList.tsx";
 
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
     <>
